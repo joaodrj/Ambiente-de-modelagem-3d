@@ -1,0 +1,16 @@
+from .models import *
+from django.views import View
+from django.views.generic import TemplateView
+
+class IndexView(TemplateView):
+    template_name = 'index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+class SalaView(TemplateView):
+    template_name = 'sala.html'
+
+class ThreeJsView(TemplateView):
+    template_name = 'ThreeJs.html'
