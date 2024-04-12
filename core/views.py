@@ -12,5 +12,8 @@ class IndexView(TemplateView):
 class SalaView(TemplateView):
     template_name = 'sala.html'
 
-class ThreeJsView(TemplateView):
-    template_name = 'ThreeJs.html'
+class DebugUiView(TemplateView):
+    template_name = 'DebugUi.html'
+
+class ModelosView(TemplateView):
+    template_name = 'modelos.html'
