@@ -79,25 +79,25 @@ function onWindowResize() {
     render();
 }
 
-// Crie uma nova variável para armazenar a posição alvo
-let targetPosition = new THREE.Vector3();
-
+let timeout;
 function onPointerMove(event) {
-    pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(objects, false);
+    if (!timeout) {
+        timeout = setTimeout(function() {
+            pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
+            raycaster.setFromCamera(pointer, camera);
+            const intersects = raycaster.intersectObjects(objects, false);
 
-    if (intersects.length > 0) {
-        const intersect = intersects[0];
-        targetPosition.copy(intersect.point).add(intersect.face.normal);
-        targetPosition.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
-        
-        // Interpolar a posição do rollOverMesh para o targetPosition suavemente
-        rollOverMesh.position.lerp(targetPosition, 0.5);  // Ajuste o fator de interpolação conforme necessário
-
-        render();
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
+                rollOverMesh.position.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
+                render();
+            }
+            timeout = null;
+        }, 100); // Ajuste o intervalo conforme necessário
     }
 }
+
 
 
 
