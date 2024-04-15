@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 
 /**
@@ -18,12 +19,23 @@ const scene = new THREE.Scene()
 /**
  * Modelos
  */
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/draco/')
+
 const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader)
+
+let mixer = null
 
 gltfLoader.load(
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/FlightHelmet/glTF/FlightHelmet.gltf',
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF/Fox.gltf',
     (gltf) =>
-    {
+    {   
+        mixer = new THREE.AnimationMixer(gltf.scene)
+        const action = mixer.clipAction(gltf.animations[0])
+        action.play()
+        
+        gltf.scene.scale.set(0.025, 0.025, 0.025)
         //outra solução mais simples
         scene.add(gltf.scene)
         
@@ -130,9 +142,14 @@ const tick = () =>
     const deltaTime = elapsedTime - previousTime
     previousTime = elapsedTime
 
+    //Update Mixer(animações)
+    if(mixer!== null){
+        mixer.update(deltaTime)
+    }
+    
+
     // Update controls
     controls.update()
-
     
     // Render
     renderer.render(scene, camera)
