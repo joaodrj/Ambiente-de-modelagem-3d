@@ -23,7 +23,7 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf0f0f0);
 
-    const rollOverGeo = new THREE.BoxGeometry(1, 1, 1);
+    const rollOverGeo = new THREE.BoxGeometry(5, 5, 5);
     rollOverMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, opacity: 0.5, transparent: true });
     rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
     scene.add(rollOverMesh);
@@ -38,16 +38,16 @@ function init() {
     controls.dampingFactor = 0.25;
     controls.enableZoom = true;
 
-    cubeGeo = new THREE.BoxGeometry(1, 1, 1);
+    cubeGeo = new THREE.BoxGeometry(5, 5, 5);
     cubeMaterial = new THREE.MeshLambertMaterial({ color: 'blue' });
 
-    const gridHelper = new THREE.GridHelper(80, 80);
+    const gridHelper = new THREE.GridHelper(150, 30);
     scene.add(gridHelper);
 
     raycaster = new THREE.Raycaster();
     pointer = new THREE.Vector2();
 
-    const geometry = new THREE.PlaneGeometry(80, 80);
+    const geometry = new THREE.PlaneGeometry(200, 200);
     geometry.rotateX(-Math.PI / 2);
 
     plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ visible: false }));
@@ -90,7 +90,7 @@ function onPointerMove(event) {
             if (intersects.length > 0) {
                 const intersect = intersects[0];
                 rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
-                rollOverMesh.position.divideScalar(1).floor().multiplyScalar(1).addScalar(0.5);
+                rollOverMesh.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
                 render();
             }
             timeout = null;
@@ -131,7 +131,7 @@ function onPointerDown( event ) {
 
             const voxel = new THREE.Mesh( cubeGeo, cubeMaterial );
             voxel.position.copy( intersect.point ).add( intersect.face.normal );
-            voxel.position.divideScalar( 1 ).floor().multiplyScalar( 1 ).addScalar( 0.5 );
+            voxel.position.divideScalar( 5 ).floor().multiplyScalar( 5 ).addScalar( 2.5 );
             scene.add( voxel );
 
             objects.push( voxel );

@@ -28,7 +28,7 @@ gltfLoader.setDRACOLoader(dracoLoader)
 let mixer = null
 
 gltfLoader.load(
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/Fox/glTF/Fox.gltf',
+    'https://github.com/joaodrj/arquivos/raw/main/arquivosGLTF/hamburguer.glb',
     (gltf) =>
     {   
         mixer = new THREE.AnimationMixer(gltf.scene)
