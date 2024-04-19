@@ -28,16 +28,20 @@ gltfLoader.setDRACOLoader(dracoLoader)
 let mixer = null
 
 gltfLoader.load(
-    'https://github.com/joaodrj/arquivos/raw/main/arquivosGLTF/hamburguer.glb',
+    'https://raw.githubusercontent.com/joaodrj/arquivos/main/arquivosGLTF/FABNAV/FABNAVE.gltf',
     (gltf) =>
     {   
         mixer = new THREE.AnimationMixer(gltf.scene)
-        const action = mixer.clipAction(gltf.animations[0])
+        const action = mixer.clipAction(gltf.animations[1])
         action.play()
         
-        gltf.scene.scale.set(0.025, 0.025, 0.025)
+        gltf.scene.scale.set(0.125, 0.125, 0.125)
         //outra solução mais simples
-        scene.add(gltf.scene)
+        //scene.add(gltf.scene)
+        while(gltf.scene.children.length) {
+            scene.add(gltf.scene.children[0]);
+        }
+        
         
         /*console.log(gltf)
         //scene.add(gltf.scene.children[0]) para objetos simples sem partes separadas
@@ -57,19 +61,19 @@ gltfLoader.load(
 const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(10, 10),
     new THREE.MeshStandardMaterial({
-        color: '#444444',
+        color: 'white',
         metalness: 0,
         roughness: 0.5
     })
 )
 floor.receiveShadow = true
 floor.rotation.x = - Math.PI * 0.5
-scene.add(floor)
+//scene.add(floor)
 
 /**
  * Lights
  */
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
+const ambientLight = new THREE.AmbientLight(0xe6e6fa, 0.8)
 scene.add(ambientLight)
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6)
