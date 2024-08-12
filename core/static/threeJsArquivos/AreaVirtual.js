@@ -12,6 +12,40 @@ let cubeGeo, cubeMaterial;
 
 const objects = [];
 
+// Funções globais
+function selectForma(formaTipo) {
+    console.log('selectForma chamada com tipo:', formaTipo); // Verifique se esta mensagem aparece no console
+    if (formaTipo === 'cubo') {
+        // Cria um cubo
+        const voxel = new THREE.Mesh(cubeGeo, cubeMaterial);
+        scene.add(voxel);
+        objects.push(voxel);
+    } else if (formaTipo === 'esfera') {
+        // Cria uma esfera
+        const esferaGeo = new THREE.SphereGeometry(2.5, 16, 16); // O raio é metade do lado do cubo para manter a proporção
+        const esferaMaterial = new THREE.MeshLambertMaterial({ color: 'red' }); // Mudar a cor para diferenciar
+        const esfera = new THREE.Mesh(esferaGeo, esferaMaterial);
+        scene.add(esfera);
+        objects.push(esfera);
+    }
+    render();
+}
+
+
+function clearPlane() {
+    // Itere sobre todos os objetos na cena
+    objects.slice().forEach(object => {
+        if (object instanceof THREE.Mesh && object !== plane) {
+            // Remove o objeto da cena
+            scene.remove(object);
+            // Remove o objeto do array de objetos para manter a sincronia
+            objects.splice(objects.indexOf(object), 1);
+        }
+    });
+    // renderiza a cena novamente
+    render();
+}
+
 init();
 render();
 
@@ -68,7 +102,12 @@ function init() {
     document.addEventListener('keyup', onDocumentKeyUp);
 
     window.addEventListener('resize', onWindowResize);
+
+    document.getElementById('clearButton').addEventListener('click', clearPlane);
+    document.getElementById('exportButton').addEventListener('click', exportSTL);
 }
+
+
 
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -166,19 +205,8 @@ function save(blob, filename) {
     document.body.removeChild(link);
 }
 
-function clearPlane() {
-    // Itere sobre todos os objetos na cena
-    objects.slice().forEach(object => {
-        if (object instanceof THREE.Mesh && object !== plane) {
-            // Remove o objeto da cena
-            scene.remove(object);
-            // Remove o objeto do array de objetos para manter a sincronia
-            objects.splice(objects.indexOf(object), 1);
-        }
-    });
-    // renderiza a cena novamente
-    render();
-}
+
+
 
 function onDocumentKeyDown(event) {
     switch (event.keyCode) {
@@ -198,3 +226,9 @@ function render() {
     controls.update();
     renderer.render(scene, camera);
 }
+
+// No final do seu arquivo AreaVirtual.js
+window.selectForma = selectForma;
+window.clearPlane = clearPlane;
+window.exportSTL = exportSTL;
+
