@@ -101,48 +101,33 @@ function onPointerMove(event) {
 
 
 
-function onPointerDown( event ) {
+function onPointerDown(event) {
+    pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
 
-    pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+    raycaster.setFromCamera(pointer, camera);
 
-    raycaster.setFromCamera( pointer, camera );
+    const intersects = raycaster.intersectObjects(objects, false);
 
-    const intersects = raycaster.intersectObjects( objects, false );
-
-    if ( intersects.length > 0 ) {
-
-        const intersect = intersects[ 0 ];
+    if (intersects.length > 0 && event.button === 0) { // Verifica se o botão esquerdo foi pressionado
+        const intersect = intersects[0];
 
         // delete cube
-
-        if ( isShiftDown ) {
-
-            if ( intersect.object !== plane ) {
-
-                scene.remove( intersect.object );
-
-                objects.splice( objects.indexOf( intersect.object ), 1 );
-
-            }
-
-            // create cube
-
-        } else {
-
-            const voxel = new THREE.Mesh( cubeGeo, cubeMaterial );
-            voxel.position.copy( intersect.point ).add( intersect.face.normal );
-            voxel.position.divideScalar( 5 ).floor().multiplyScalar( 5 ).addScalar( 2.5 );
-            scene.add( voxel );
-
-            objects.push( voxel );
-
+        if (isShiftDown && intersect.object !== plane) {
+            scene.remove(intersect.object);
+            objects.splice(objects.indexOf(intersect.object), 1);
         }
-
+        // create cube
+        else {
+            const voxel = new THREE.Mesh(cubeGeo, cubeMaterial);
+            voxel.position.copy(intersect.point).add(intersect.face.normal);
+            voxel.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
+            scene.add(voxel);
+            objects.push(voxel);
+        }
         render();
-
     }
-
 }
+
 
 function exportSTL() {
     const exporter = new STLExporter();
@@ -181,10 +166,25 @@ function save(blob, filename) {
     document.body.removeChild(link);
 }
 
+function clearPlane() {
+    // Itere sobre todos os objetos na cena
+    objects.slice().forEach(object => {
+        if (object instanceof THREE.Mesh && object !== plane) {
+            // Remove o objeto da cena
+            scene.remove(object);
+            // Remove o objeto do array de objetos para manter a sincronia
+            objects.splice(objects.indexOf(object), 1);
+        }
+    });
+    // renderiza a cena novamente
+    render();
+}
+
 function onDocumentKeyDown(event) {
     switch (event.keyCode) {
         case 16: isShiftDown = true; break;
-        case 69: exportSTL(); break;  // 'E' key for export
+        case 69: exportSTL(); break;  // 'E' para baixar o arquivo stl
+        case 67: clearPlane(); break; // 'C' para limpar o plano
     }
 }
 

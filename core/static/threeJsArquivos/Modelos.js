@@ -9,7 +9,6 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
  */
 // Debug
 
-
 // Canvas
 const canvas = document.querySelector('canvas.webgl')
 
@@ -28,19 +27,22 @@ gltfLoader.setDRACOLoader(dracoLoader)
 let mixer = null
 
 gltfLoader.load(
-    'https://raw.githubusercontent.com/joaodrj/arquivos/main/arquivosGLTF/FABNAV/FABNAVE.gltf',
+    'https://raw.githubusercontent.com/joaodrj/arquivos/main/arquivosGLTF/NAVEATUALIZADA/Area de prototipação virtual.gltf',
     (gltf) =>
     {   
+        /*
         mixer = new THREE.AnimationMixer(gltf.scene)
-        const action = mixer.clipAction(gltf.animations[1])
+        const action = mixer.clipAction(gltf.animations[0])
+        
         action.play()
+        */
         
         gltf.scene.scale.set(0.125, 0.125, 0.125)
         //outra solução mais simples
-        //scene.add(gltf.scene)
-        while(gltf.scene.children.length) {
-            scene.add(gltf.scene.children[0]);
-        }
+        scene.add(gltf.scene)
+        //while(gltf.scene.children.length) {
+            //scene.add(gltf.scene.children[0]);
+        //}
         
         
         /*console.log(gltf)
@@ -147,9 +149,9 @@ const tick = () =>
     previousTime = elapsedTime
 
     //Update Mixer(animações)
-    if(mixer!== null){
-        mixer.update(deltaTime)
-    }
+    //if(mixer!== null){
+        //mixer.update(deltaTime)
+    //}
     
 
     // Update controls

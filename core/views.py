@@ -17,3 +17,6 @@ class DebugUiView(TemplateView):
 
 class ModelosView(TemplateView):
     template_name = 'modelos.html'
+
+class AreaVirtualView(TemplateView):
+    template_name = 'areavirtual.html'
