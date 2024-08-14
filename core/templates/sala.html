@@ -1,14 +1,60 @@
 {% load static %}
-
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Área de Prototipagem com Paper.js</title>
-    <script src="{% static 'paper-full.min.js' %}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Virtual.js</title>
+    <link rel="stylesheet" href="{% static 'treeJsCSS/areaVirtual.css' %}">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/",
+                "three/addons/loaders/STLLoader.js": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/loaders/STLLoader.js"
+
+            }
+        }
+    </script>
 </head>
 <body>
-    <canvas id="myCanvas" resize style="width:100%; height: 100vh;"></canvas>
-    <script src="{% static 'script.js' %}"></script>
+    <canvas class="webgl"></canvas>
+    <!-- botões de limpar e baixar -->
+    <div class="container-botao">
+        <button class="botao limpar" id="clearButton">Limpar Plano</button>
+        <button class="botao carregar" id="loadButton">Carregar STL</button>
+        <button class="botao exportar" id="exportButton">Exportar STL</button>
+        <button id="wireframeButton">Ativar Wireframe</button>
+        <!-- Input para selecionar o arquivo STL -->
+        <input type="file" id="stlInput" accept=".stl" style="display:none;" onchange="loadSTL(this.files)">
+    </div>
+
+    <!-- Menu lateral de seleção de formas -->
+    <div id="menu-lateral">
+        <button onclick="selectForma('cubo')">Cubo</button>
+        <button onclick="selectForma('esfera')">Esfera</button>
+        <button onclick="toggleDeleteMode()">Apagar</button>
+        <button id="toggleModeButton">Navegação</button>
+     
+    </div>
+    
+
+    <script type="module" src="{% static 'threeJsArquivos/Teste.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.9.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19"></script>
+    <script>
+    var GUI = lil.GUI;
+    </script>
+
+    <!-- Script para manipular os eventos dos botões -->
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Adicionando listeners para os botões
+            document.getElementById('clearButton').addEventListener('click', clearPlane);
+            document.getElementById('exportButton').addEventListener('click', exportSTL);
+        });
+    </script>
+    
+        
 </body>
 </html>

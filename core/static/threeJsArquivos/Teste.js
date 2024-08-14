@@ -2,16 +2,18 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 import { toggleWireframe } from './Funcionalidades.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
 let camera, scene, renderer, controls;
 let plane;
 let pointer, raycaster;
 let isDeleteMode = false;
+let isPlacingMode = false; // Controle para modo de colocação
 
 let rollOverMesh, rollOverMaterial;
 let cubeGeo, cubeMaterial;
 
-let formaSelecionada = 'cubo'; // Forma padrão
+let formaSelecionada = ''; // Nenhuma forma selecionada por padrão
 
 const objects = [];
 
@@ -24,20 +26,28 @@ function updateRollOverMesh() {
         rollOverMesh.geometry = new THREE.SphereGeometry(2.5, 16, 16);
         rollOverMesh.material = new THREE.MeshBasicMaterial({ color: isDeleteMode ? 0xff0000 : 0x00ff00, opacity: 0.5, transparent: true });
     }
+    rollOverMesh.visible = isPlacingMode && formaSelecionada !== ''; // Só mostra o rollOverMesh quando no modo de colocação
 }
-
 
 // Função para selecionar a forma e alternar para o modo de adição
 function selectForma(formaTipo) {
     formaSelecionada = formaTipo; // Atualiza a forma selecionada
+    isPlacingMode = true; // Ativa o modo de colocação
     isDeleteMode = false; // Garante que estejamos no modo de adição
     updateRollOverMesh(); // Atualiza o rollOverMesh para refletir a forma selecionada
 }
 
+// Função para ativar o modo de seleção (sem colocar formas)
+function activateSelectionMode() {
+    formaSelecionada = ''; // Reseta a forma selecionada
+    isPlacingMode = false; // Desativa o modo de colocação
+    rollOverMesh.visible = false; // Esconde o rollOverMesh
+}
 
 // Função para ativar/desativar o modo de exclusão
 function toggleDeleteMode() {
     isDeleteMode = !isDeleteMode;
+    isPlacingMode = true; // Quando alternar para o modo de exclusão, também ativamos o modo de colocação
     updateRollOverMesh(); // Atualiza a cor do rollOverMesh
 }
 
@@ -51,17 +61,43 @@ function clearPlane() {
     });
     render();
 }
+//------------------------------------------------FUNÇÃO PARA ALTERNAR ENTRE OS MODOS---------------------------
 
-// Função para adicionar a forma selecionada ao plano
+
+
+// Função para alternar entre os modos de colocação e navegação
+function toggleMode() {
+    isPlacingMode = !isPlacingMode; // Alterna o estado
+
+    // Atualiza o comportamento do cursor com base no modo atual
+    if (isPlacingMode) {
+        document.getElementById('toggleModeButton').textContent = 'Navegação';
+        rollOverMesh.visible = true; // Exibe o rollOverMesh no modo de colocação
+    } else {
+        document.getElementById('toggleModeButton').textContent = 'Inserção';
+        rollOverMesh.visible = false; // Oculta o rollOverMesh no modo de navegação
+    }
+}
+
+
+
+
+//---------------------------------------------------------------------------------------------------------------
+
+// Função para adicionar a forma selecionada ao plano ou deletar uma existente
 function onPointerDown(event) {
+    // Verifica se o botão esquerdo do mouse foi clicado
+    if (event.button !== 0) return; // 0 é o código para o botão esquerdo
+
+    // Evita colocação se não estiver no modo de colocação ou se uma forma não estiver selecionada
+    if (!isPlacingMode || formaSelecionada === '') return;
+
     // Verifica se o clique foi em um elemento da UI
     if (event.target.matches('#clearButton, #exportButton, #wireframeButton, .ui-element-class')) {
         return;
     }
 
-    // Verifica se o botão esquerdo do mouse foi clicado
-    if (event.button !== 0) return; // 0 é o código para o botão esquerdo
-
+    // Configura o ponteiro do raycaster
     pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
     raycaster.setFromCamera(pointer, camera);
 
@@ -69,36 +105,41 @@ function onPointerDown(event) {
 
     if (intersects.length > 0) {
         const intersect = intersects[0];
-        
-        let forma;
+
+        // Modo de exclusão
         if (isDeleteMode) {
-            // Deleta objeto se estiver no modo de exclusão
             if (intersect.object !== plane) {
                 scene.remove(intersect.object);
                 objects.splice(objects.indexOf(intersect.object), 1);
+                render();
             }
-        } else {
-            // Adiciona forma selecionada
-            if (formaSelecionada === 'cubo') {
-                forma = new THREE.Mesh(cubeGeo, cubeMaterial);
-            } else if (formaSelecionada === 'esfera') {
-                const esferaGeo = new THREE.SphereGeometry(2.5, 16, 16);
-                const esferaMaterial = new THREE.MeshLambertMaterial({ color: 'red' });
-                forma = new THREE.Mesh(esferaGeo, esferaMaterial);
-            }
-            
-            // Posiciona a forma no plano
-            forma.position.copy(intersect.point).add(intersect.face.normal);
-            forma.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
-
-            scene.add(forma);
-            objects.push(forma);
+            return; // Retorna imediatamente para evitar adicionar qualquer coisa
         }
+
+        // Adiciona a forma selecionada
+        let forma;
+        if (formaSelecionada === 'cubo') {
+            forma = new THREE.Mesh(cubeGeo, cubeMaterial);
+        } else if (formaSelecionada === 'esfera') {
+            const esferaGeo = new THREE.SphereGeometry(2.5, 16, 16);
+            const esferaMaterial = new THREE.MeshLambertMaterial({ color: 'red' });
+            forma = new THREE.Mesh(esferaGeo, esferaMaterial);
+        }
+
+        // Posiciona a forma no plano
+        forma.position.copy(intersect.point).add(intersect.face.normal);
+        forma.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
+
+        scene.add(forma);
+        objects.push(forma);
+
         render();
     }
 }
 
-// No seu arquivo AreaVirtual.js
+
+
+
 
 // Função para verificar se o clique foi em um elemento de UI
 function isClickOnUI(event) {
@@ -213,6 +254,7 @@ function onDocumentKeyDown(event) {
         case 69: exportSTL(); break;  
         case 67: clearPlane(); break; 
         case 68: toggleDeleteMode(); break; // Alternar modo de exclusão com a tecla 'D'
+        case 'Escape': toggleMode(); break;
     }
 }
 
@@ -221,6 +263,114 @@ function onDocumentKeyUp(event) {
         isShiftDown = false;
     }
 }
+
+
+//------------------------------------- Função para carregar um arquivo STL----------------------------------
+
+// Instancia o STLLoader
+const loader = new STLLoader();
+const sceneObjects = []; // Novo nome para evitar conflitos
+let selectedObject = null;
+const offset = new THREE.Vector3();
+const intersection = new THREE.Vector3();
+
+function loadSTL(files) {
+    if (files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+        const geometry = loader.parse(event.target.result);
+        const material = new THREE.MeshStandardMaterial({ color: 0x696969 });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotation.x = -Math.PI / 2;
+
+        scene.children.forEach(child => {
+            if (child instanceof THREE.Mesh && child !== plane && child !== rollOverMesh) {
+                scene.remove(child);
+            }
+        });
+
+        scene.add(mesh);
+        sceneObjects.push(mesh); // Adiciona o mesh ao array de objetos
+
+        render();
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+function calculateIntersection(event) {
+    const mouse = new THREE.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObject(plane);
+
+    if (intersects.length > 0) {
+        return intersects[0].point;
+    }
+
+    return null;
+}
+
+function onDragStart(event) {
+    const mouse = new THREE.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(sceneObjects);
+
+    if (intersects.length > 0) {
+        selectedObject = intersects[0].object;
+        const intersectionPoint = calculateIntersection(event);
+        if (intersectionPoint) {
+            offset.copy(intersectionPoint).sub(selectedObject.position);
+        }
+    }
+}
+
+function onDragMove(event) {
+    if (selectedObject) {
+        const intersectionPoint = calculateIntersection(event);
+        if (intersectionPoint) {
+            selectedObject.position.copy(intersectionPoint.sub(offset));
+            render();
+        }
+    }
+}
+
+function onDragEnd() {
+    selectedObject = null;
+}
+
+document.addEventListener('pointerdown', onDragStart);
+document.addEventListener('pointermove', onDragMove);
+document.addEventListener('pointerup', onDragEnd);
+
+document.getElementById('loadButton').addEventListener('click', function() {
+    document.getElementById('stlInput').click();
+});
+
+
+
+
+
+
+
+//--------------------------------------------------------------------------------------------------------------
+
+
+
+
 
 // Função de inicialização
 function init() {
@@ -290,6 +440,8 @@ function init() {
 
     document.getElementById('clearButton').addEventListener('click', clearPlane);
     document.getElementById('exportButton').addEventListener('click', exportSTL);
+    document.getElementById('toggleModeButton').addEventListener('click', toggleMode);
+
 }
 
 
@@ -309,20 +461,33 @@ let timeout;
 function onPointerMove(event) {
     if (!timeout) {
         timeout = setTimeout(function() {
+            // Atualiza o ponteiro
             pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
             raycaster.setFromCamera(pointer, camera);
-            const intersects = raycaster.intersectObjects(objects, false);
+
+            // Verifica a interseção com o plano
+            const intersects = raycaster.intersectObject(plane);
 
             if (intersects.length > 0) {
                 const intersect = intersects[0];
-                rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
-                rollOverMesh.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
-                render();
+                
+                if (isPlacingMode) {
+                    // Atualiza a posição do rollOverMesh no modo de colocação
+                    rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
+                    rollOverMesh.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
+                    rollOverMesh.visible = true; // Certifica-se de que o rollOverMesh está visível
+                } else {
+                    rollOverMesh.visible = false; // Oculta o rollOverMesh no modo de navegação
+                }
+                
+                render(); // Re-renderiza a cena
             }
-            timeout = null;
+
+            timeout = null; // Reseta o timeout para permitir novos eventos
         }, 100); 
     }
 }
+
 
 // Função de renderização
 function render() {
@@ -335,6 +500,7 @@ window.selectForma = selectForma;
 window.clearPlane = clearPlane;
 window.exportSTL = exportSTL;
 window.toggleDeleteMode = toggleDeleteMode;
+window.loadSTL = loadSTL;
 
 init();
 render();

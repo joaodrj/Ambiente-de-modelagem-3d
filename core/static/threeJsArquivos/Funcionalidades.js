@@ -16,3 +16,5 @@ function toggleWireframe(objects, render) {
     render(); // Renderiza a cena após a alteração
 }
 export { toggleWireframe };
+
+
