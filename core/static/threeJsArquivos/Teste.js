@@ -84,20 +84,19 @@ function toggleMode() {
 
 //---------------------------------------------------------------------------------------------------------------
 
-// Função para adicionar a forma selecionada ao plano ou deletar uma existente
+// Variável para rastrear o modo de navegação
+let isNavigationMode = false; // Ajuste essa variável conforme necessário em seu código
+
+// Função para adicionar a forma selecionada ao plano
 function onPointerDown(event) {
-    // Verifica se o botão esquerdo do mouse foi clicado
-    if (event.button !== 0) return; // 0 é o código para o botão esquerdo
-
-    // Evita colocação se não estiver no modo de colocação ou se uma forma não estiver selecionada
-    if (!isPlacingMode || formaSelecionada === '') return;
-
     // Verifica se o clique foi em um elemento da UI
     if (event.target.matches('#clearButton, #exportButton, #wireframeButton, .ui-element-class')) {
         return;
     }
 
-    // Configura o ponteiro do raycaster
+    // Verifica se o botão esquerdo do mouse foi clicado
+    if (event.button !== 0) return; // 0 é o código para o botão esquerdo
+
     pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
     raycaster.setFromCamera(pointer, camera);
 
@@ -105,37 +104,38 @@ function onPointerDown(event) {
 
     if (intersects.length > 0) {
         const intersect = intersects[0];
-
-        // Modo de exclusão
+        
+        let forma;
         if (isDeleteMode) {
+            // Deleta objeto se estiver no modo de exclusão
             if (intersect.object !== plane) {
                 scene.remove(intersect.object);
                 objects.splice(objects.indexOf(intersect.object), 1);
-                render();
             }
-            return; // Retorna imediatamente para evitar adicionar qualquer coisa
+        } else {
+            // Adiciona forma selecionada
+            if (formaSelecionada === 'cubo') {
+                forma = new THREE.Mesh(cubeGeo, cubeMaterial);
+            } else if (formaSelecionada === 'esfera') {
+                const esferaGeo = new THREE.SphereGeometry(2.5, 16, 16);
+                const esferaMaterial = new THREE.MeshLambertMaterial({ color: 'red' });
+                forma = new THREE.Mesh(esferaGeo, esferaMaterial);
+            }
+            
+            // Ajusta a posição do bloco
+            forma.position.copy(intersect.point).add(intersect.face.normal).divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
+
+            scene.add(forma);
+            objects.push(forma);
         }
-
-        // Adiciona a forma selecionada
-        let forma;
-        if (formaSelecionada === 'cubo') {
-            forma = new THREE.Mesh(cubeGeo, cubeMaterial);
-        } else if (formaSelecionada === 'esfera') {
-            const esferaGeo = new THREE.SphereGeometry(2.5, 16, 16);
-            const esferaMaterial = new THREE.MeshLambertMaterial({ color: 'red' });
-            forma = new THREE.Mesh(esferaGeo, esferaMaterial);
-        }
-
-        // Posiciona a forma no plano
-        forma.position.copy(intersect.point).add(intersect.face.normal);
-        forma.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
-
-        scene.add(forma);
-        objects.push(forma);
-
         render();
     }
 }
+
+
+
+
+
 
 
 
@@ -195,6 +195,32 @@ document.querySelector('.webgl').addEventListener('pointerdown', function(event)
 
 
 
+function onDocumentMouseMove(event) {
+    event.preventDefault();
+
+    // Calcula as coordenadas do mouse
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    // Atualiza o raycaster com base nas coordenadas do mouse
+    raycaster.setFromCamera(mouse, camera);
+
+    // Calcula as interseções com os objetos na cena
+    const intersects = raycaster.intersectObjects(objects);
+
+    if (intersects.length > 0) {
+        const intersect = intersects[0];
+
+        // Posiciona o rollOverMesh na face correta
+        rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
+        rollOverMesh.position.divideScalar(50).floor().multiplyScalar(50).addScalar(25);
+
+        // Ajuste adicional para posicionar corretamente nas laterais
+        if (intersect.face.normal.y === 0) {
+            rollOverMesh.position.y -= 25; // Se a face não for a superior, ajuste a altura
+        }
+    }
+}
 
 
 
@@ -457,36 +483,32 @@ function onWindowResize() {
 }
 
 // Função para manipular movimento do ponteiro
-let timeout;
 function onPointerMove(event) {
-    if (!timeout) {
-        timeout = setTimeout(function() {
-            // Atualiza o ponteiro
-            pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
-            raycaster.setFromCamera(pointer, camera);
+    // Atualiza o ponteiro
+    pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
+    raycaster.setFromCamera(pointer, camera);
 
-            // Verifica a interseção com o plano
-            const intersects = raycaster.intersectObject(plane);
+    // Verifica a interseção com todos os objetos
+    const intersects = raycaster.intersectObjects(objects, false);
 
-            if (intersects.length > 0) {
-                const intersect = intersects[0];
-                
-                if (isPlacingMode) {
-                    // Atualiza a posição do rollOverMesh no modo de colocação
-                    rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
-                    rollOverMesh.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
-                    rollOverMesh.visible = true; // Certifica-se de que o rollOverMesh está visível
-                } else {
-                    rollOverMesh.visible = false; // Oculta o rollOverMesh no modo de navegação
-                }
-                
-                render(); // Re-renderiza a cena
-            }
-
-            timeout = null; // Reseta o timeout para permitir novos eventos
-        }, 100); 
+    if (intersects.length > 0) {
+        const intersect = intersects[0];
+        
+        if (isPlacingMode) {
+            // Atualiza a posição do rollOverMesh no modo de colocação
+            rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
+            rollOverMesh.position.divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
+            rollOverMesh.visible = true; // Certifica-se de que o rollOverMesh está visível
+        } else {
+            rollOverMesh.visible = false; // Oculta o rollOverMesh no modo de navegação
+        }
+        
+        render(); // Re-renderiza a cena
+    } else {
+        rollOverMesh.visible = false; // Oculta o rollOverMesh se não houver interseção
     }
 }
+
 
 
 // Função de renderização
