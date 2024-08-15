@@ -67,17 +67,22 @@ function clearPlane() {
 
 // Função para alternar entre os modos de colocação e navegação
 function toggleMode() {
-    isPlacingMode = !isPlacingMode; // Alterna o estado
+    isPlacingMode = !isPlacingMode; // Alterna entre modo de navegação e inserção
+    isNavigationMode = !isNavigationMode; // Altera o modo de navegação também
 
     // Atualiza o comportamento do cursor com base no modo atual
     if (isPlacingMode) {
         document.getElementById('toggleModeButton').textContent = 'Navegação';
-        rollOverMesh.visible = true; // Exibe o rollOverMesh no modo de colocação
+        rollOverMesh.visible = true; // Exibe o rollOverMesh no modo de inserção
     } else {
         document.getElementById('toggleModeButton').textContent = 'Inserção';
         rollOverMesh.visible = false; // Oculta o rollOverMesh no modo de navegação
     }
+
+    // Se necessário, altere os controles aqui também
+    controls.enabled = !isPlacingMode; // Desabilita os controles de navegação no modo de inserção
 }
+
 
 
 
@@ -89,13 +94,13 @@ let isNavigationMode = false; // Ajuste essa variável conforme necessário em s
 
 // Função para adicionar a forma selecionada ao plano
 function onPointerDown(event) {
-    // Verifica se o clique foi em um elemento da UI
     if (event.target.matches('#clearButton, #exportButton, #wireframeButton, .ui-element-class')) {
         return;
     }
 
-    // Verifica se o botão esquerdo do mouse foi clicado
-    if (event.button !== 0) return; // 0 é o código para o botão esquerdo
+    if (event.button !== 0) return;
+
+    if (!isPlacingMode) return; // Se não estiver no modo de inserção, não faz nada
 
     pointer.set((event.clientX / window.innerWidth) * 2 - 1, - (event.clientY / window.innerHeight) * 2 + 1);
     raycaster.setFromCamera(pointer, camera);
@@ -104,38 +109,51 @@ function onPointerDown(event) {
 
     if (intersects.length > 0) {
         const intersect = intersects[0];
-        
         let forma;
+
         if (isDeleteMode) {
-            // Deleta objeto se estiver no modo de exclusão
             if (intersect.object !== plane) {
                 scene.remove(intersect.object);
                 objects.splice(objects.indexOf(intersect.object), 1);
             }
-        } else {
-            // Adiciona forma selecionada
+        } else if (formaSelecionada) {
+            const color = new THREE.Color(selectedColor);
             if (formaSelecionada === 'cubo') {
+                cubeGeo = new THREE.BoxGeometry(5, 5, 5);
+                cubeMaterial = new THREE.MeshLambertMaterial({ color });
                 forma = new THREE.Mesh(cubeGeo, cubeMaterial);
             } else if (formaSelecionada === 'esfera') {
                 const esferaGeo = new THREE.SphereGeometry(2.5, 16, 16);
-                const esferaMaterial = new THREE.MeshLambertMaterial({ color: 'red' });
+                const esferaMaterial = new THREE.MeshLambertMaterial({ color });
                 forma = new THREE.Mesh(esferaGeo, esferaMaterial);
             }
-            
-            // Ajusta a posição do bloco
             forma.position.copy(intersect.point).add(intersect.face.normal).divideScalar(5).floor().multiplyScalar(5).addScalar(2.5);
 
             scene.add(forma);
             objects.push(forma);
+        } else {
+            // Se uma forma não estiver selecionada, altere a cor de um objeto existente
+            intersect.object.material.color.set(selectedColor);
         }
+
         render();
     }
 }
 
 
+// Função para manipular o input de cor
+document.getElementById('colorPicker').addEventListener('input', setSelectedColor);
 
 
+//-----------------------------CORES DAS FORMAS/OBJETOS-----------------------
 
+
+let selectedColor = '#ff0000'; // Cor padrão
+
+// Função para capturar a cor selecionada pelo usuário
+function setSelectedColor(event) {
+    selectedColor = event.target.value; // Atualiza a cor selecionada
+}
 
 
 
