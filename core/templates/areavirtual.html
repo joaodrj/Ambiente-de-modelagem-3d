@@ -10,7 +10,9 @@
         {
             "imports": {
                 "three": "https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/"
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/",
+                "three/addons/loaders/STLLoader.js": "https://cdn.jsdelivr.net/npm/three@0.149.0/examples/jsm/loaders/STLLoader.js"
+
             }
         }
     </script>
@@ -20,9 +22,11 @@
     <!-- botões de limpar e baixar -->
     <div class="container-botao">
         <button class="botao limpar" id="clearButton">Limpar Plano</button>
+        <button class="botao carregar" id="loadButton">Carregar STL</button>
         <button class="botao exportar" id="exportButton">Exportar STL</button>
         <button id="wireframeButton">Ativar Wireframe</button>
-        
+        <!-- Input para selecionar o arquivo STL -->
+        <input type="file" id="stlInput" accept=".stl" style="display:none;" onchange="loadSTL(this.files)">
     </div>
 
     <!-- Menu lateral de seleção de formas -->
@@ -30,7 +34,10 @@
         <button onclick="selectForma('cubo')">Cubo</button>
         <button onclick="selectForma('esfera')">Esfera</button>
         <button onclick="toggleDeleteMode()">Apagar</button>
-        
+        <button id="toggleModeButton">Navegação</button>
+        <input type="color" id="colorPicker" value="#ff0000">
+
+     
     </div>
     
 

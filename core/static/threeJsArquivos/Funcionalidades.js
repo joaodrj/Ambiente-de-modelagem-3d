@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-
+//------------------------------FUNÇÃO PARA CONTROLAR A ATIVAÇÃO DE WIREFRAME DOS OBJETOS------------------------------------------------
 // Variáveis para controle de wireframe
 let wireframeMode = false;
 
@@ -15,6 +15,15 @@ function toggleWireframe(objects, render) {
     
     render(); // Renderiza a cena após a alteração
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------
+
+//------------------------------------FUNÇÃO PARA MOVER, ROTACIONAR E ESCALA------------------------------------------------------------ 
+
+
+
+
+
 export { toggleWireframe };
 
 

@@ -29,6 +29,29 @@
         <input type="file" id="stlInput" accept=".stl" style="display:none;" onchange="loadSTL(this.files)">
     </div>
 
+    <!-- botões de controle dos objetos -->
+    <div id="controls">
+        <button id="translate">Mover</button>
+        <button id="rotate">Rotacionar</button>
+        <button id="scale">Escala</button>
+    </div>
+    
+    <style>
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    
+        button {
+            margin: 5px;
+        }
+    </style>
+    
+
     <!-- Menu lateral de seleção de formas -->
     <div id="menu-lateral">
         <button onclick="selectForma('cubo')">Cubo</button>

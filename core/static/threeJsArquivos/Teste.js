@@ -4,6 +4,7 @@ import { STLExporter } from 'three/addons/exporters/STLExporter.js';
 import { toggleWireframe } from './Funcionalidades.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
+
 let camera, scene, renderer, controls;
 let plane;
 let pointer, raycaster;
