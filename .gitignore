@@ -1,1 +1,75 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.swp
+
+# Virtual Environment
 env/
+venv/
+ENV/
+
+# Django specific
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.swp
+*
+staticfiles/
+media/
+local_settings.py
+
+# Database
+*.sqlite3
+
+# Environment variables
+.env
+
+# VSCode
+.vscode/
+
+# IDEs and Editors
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Backup files
+*.bak
+*.swp
+*.tmp
+
+# Testing
+coverage/
+.tox/
+.nox/
+.pytest_cache/
+
+# Docker
+docker-compose.override.yml
+
+# Celery
+celerybeat-schedule
+
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Logs
+*.log
+
+# Additional
+data/
+node_modules/
